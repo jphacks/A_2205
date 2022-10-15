@@ -1,0 +1,21 @@
+services:
+  streamlit:
+    build:
+      dockerfile: frontend/Dockerfile
+      contex: .
+    volumes:
+      - type: bind
+        source: "./frontend"
+        target: "/workspace"
+    ports:
+      - "8501:8501"
+  apis:
+    build:
+      dockerfile: backend/Dockerfile
+      contex: .
+    volumes:
+      - type: bind
+        source: "./backend"
+        target: "/workspace"
+    ports:
+      - "8080:8080"
