@@ -10,6 +10,6 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install uvicorn fastapi transformers setfit pandas numpy
 
 CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8080"]
