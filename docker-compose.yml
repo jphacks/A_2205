@@ -11,6 +11,8 @@ services:
   apis:
     build:
       dockerfile: backend/Dockerfile
+    env_file:
+      - .env
     volumes:
       - type: bind
         source: "backend"
