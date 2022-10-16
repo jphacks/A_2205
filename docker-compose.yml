@@ -2,6 +2,8 @@ services:
   streamlit:
     build:
       dockerfile: frontend/Dockerfile
+    env_file:
+      - .env
     volumes:
       - type: bind
         source: "./frontend"
@@ -19,3 +21,4 @@ services:
         target: "/backend"
     ports:
       - "8080:8080"
+    hostname: api_server
