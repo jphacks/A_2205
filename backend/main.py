@@ -26,7 +26,7 @@ def create_user(username: str):
         return {"message": f"User {username} already exists!"}
 
     os.mkdir(f"users/{username}")
-    df = pd.DataFrame(columns=["id", "text", "label"])
+    df = pd.DataFrame(columns=["id", "text", "author_name", "label"])
     df.to_csv(f"users/{username}/tweets.csv", index=False)
     return {"message": f"Successfully created user {username}."}
 
