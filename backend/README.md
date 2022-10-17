@@ -26,7 +26,8 @@ uvicorn main:app --reload
 - `POST /update/{username}`
     - クロールを実行する．
 - `GET /tweets/{username}`
-    - 保存されている tweets を取得する．レスポンスは `{"data": [{レコード 1 の tweet_id, text, author_name, label, annotated}, {レコード 2の ...}, ...]}` となる．
+    - 保存されている tweets を取得する．レスポンスは `{"data": [{レコード 1 の tweet_id, text, author_name, topic, annotated}, {レコード 2の ...}, ...]}` となる．
     - `annotated` は，ユーザが手動でアノテーションしたかどうかのフラグ
+    - クエリパラメータにトピックのリストを指定されたら，指定したトピックのツイートのみ返す
 - `GET /podcast`
     - podcast を作成する．未実装

@@ -13,5 +13,5 @@ def crawl_tweets(username: str, max_results: int = 10):
     author_info = tweet_info.includes['users']
     liked_tweets = tweet_info.data
     for author, tweet in zip(author_info, liked_tweets):
-        df_tweets = df_tweets.append({"id": tweet.id, "text": tweet.text, "author_name": author.username, "label": "null", "annotated": False}, ignore_index=True)
+        df_tweets = df_tweets.append({"id": tweet.id, "text": tweet.text, "author_name": author.username, "annotated": False}, ignore_index=True)
     df_tweets.to_csv(f"users/{username}/tweets.csv", index=False)

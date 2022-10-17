@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 import os
 import shutil
@@ -106,11 +106,14 @@ def update(username: str):
 
 
 @app.get("/tweets/{username}")
-def get_tweets(username: str, max_results: int = 10):
+def get_tweets(username: str, max_results: int = 10, topics: List[str] = Query(None)):
     if not check_if_user_exists(username):
         return {"message": f"User {username} does not exist!"}
 
     tweets = pd.read_csv(f"users/{username}/tweets.csv")
+    if topics is not None:
+        tweets = tweets[np.isin(tweets["label"], topics)]
+
     return {"data": tweets.head(max_results).to_json(orient="records", force_ascii=False)}
 
 
