@@ -8,6 +8,7 @@ import os
 
 from login import login
 from choose_topic import choose_topic
+from annotation import annotation
 from tweet_list import tweet_list
 from utils import set_png_as_page_bg
 
@@ -15,6 +16,7 @@ from utils import set_png_as_page_bg
 BACKGROUND_IMAGE_PATH = {
     'login': 'images/login.png',
     'choose_topic': 'images/black.png',
+    'annotation': 'images/black.png',
     'tweet_list': 'images/black.png',
     'page2': 'images/black.png'
 }
@@ -31,13 +33,16 @@ def init():
             'スポーツ', 'テクノロジー', '科学'
         ]
         st.session_state.add_topic = False
-        st.session_state.default_topic = []
+        st.session_state.chosen_topic = []
+        st.session_state.annotate_count = 0
+        st.session_state.labels = {}
+        st.session_state.done_reload = {}
 
 def page2():
     with st.container():
         st.write('page2')
 
-pages = {'login':login, 'choose_topic':choose_topic, 'tweet_list':tweet_list, 'page2':page2}
+pages = {'login':login, 'choose_topic':choose_topic, 'annotation':annotation, 'tweet_list':tweet_list, 'page2':page2}
 
 
 init()
