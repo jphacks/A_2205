@@ -42,7 +42,8 @@ def create_user(username: str):
     open(f"users/{username}/config", "w").close()
 
     # create tweets list
-    df = pd.DataFrame(columns=["id", "text", "author_name", "label", "annotated"])
+    df = pd.DataFrame(columns=["id", "text", "author_name", "topic", "annotated"])
+    print(df.columns)
     df.to_csv(f"users/{username}/tweets.csv", index=False)
 
     return {"message": f"Successfully created user {username}."}
@@ -90,7 +91,7 @@ def train(username: str, labels: Label):
     df = pd.read_csv(f"users/{username}/tweets.csv")
     for tweet_id, label in labels.labels:
         idx = df["id"] == tweet_id
-        df.loc[idx, "label"] = label
+        df.loc[idx, "topic"] = label
         df.loc[idx, "annotated"] = True
     df.to_csv(f"users/{username}/tweets.csv", index=False)
 
@@ -112,7 +113,7 @@ def get_tweets(username: str, max_results: int = 10, topics: List[str] = Query(N
 
     tweets = pd.read_csv(f"users/{username}/tweets.csv")
     if topics is not None:
-        tweets = tweets[np.isin(tweets["label"], topics)]
+        tweets = tweets[np.isin(tweets["topic"], topics)]
 
     return {"data": tweets.head(max_results).to_json(orient="records", force_ascii=False)}
 
@@ -123,7 +124,7 @@ def get_podcast(username: str, topic: str):
         return {"message": f"User {username} does not exist!"}
 
     tweets = pd.read_csv(f"users/{username}/tweets.csv")
-    tweets_matched = tweets[tweets["label"] == topic]
+    tweets_matched = tweets[tweets["topic"] == topic]
 
     # TODO: create a script from tweets
 
