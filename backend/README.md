@@ -29,5 +29,6 @@ uvicorn main:app --reload
     - 保存されている tweets を取得する．レスポンスは `{"data": [{レコード 1 の tweet_id, text, author_name, topic, annotated}, {レコード 2の ...}, ...]}` となる．
     - `annotated` は，ユーザが手動でアノテーションしたかどうかのフラグ
     - クエリパラメータにトピックのリストを指定されたら，指定したトピックのツイートのみ返す
-- `GET /podcast`
-    - podcast を作成する (未実装)．
+- `GET /podcast/{username}/{topic}`
+    - 指定したトピックのツイートから podcast のスクリプトを生成する．
+    - いまはとりあえず著者とツイート内容をつなげて並べただけ．要改善 (とくに URL の処理など)

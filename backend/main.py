@@ -126,9 +126,9 @@ def get_podcast(username: str, topic: str):
     tweets = pd.read_csv(f"users/{username}/tweets.csv")
     tweets_matched = tweets[tweets["topic"] == topic]
 
-    # TODO: create a script from tweets
+    script = ""
+    for _, tweet in tweets_matched.iterrows():
+        script += f"{tweet['author_name']}さんのツイートです．{tweet['text']}\n"
 
-    # TODO: create an audio from the script
-
-    return {"data": "podcast"}
+    return {"data": script}
 
