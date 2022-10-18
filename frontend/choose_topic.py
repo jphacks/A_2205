@@ -1,5 +1,6 @@
 import copy
 import time
+import requests
 
 import streamlit as st
 
@@ -27,12 +28,13 @@ def choose_topic():
         placeholder='(例)テニス、就活、...etc'
     )
     if st.button(label='追加'):
-        if topic not in st.session_state.chosen_topic:
-            st.session_state.chosen_topic.append(topic)
-            if topic not in st.session_state.option_topic:
-                st.session_state.option_topic.append(topic)
-        st.session_state.add_topic = True
-        st.experimental_rerun()
+        if topic:
+            if topic not in st.session_state.chosen_topic:
+                st.session_state.chosen_topic.append(topic)
+                if topic not in st.session_state.option_topic:
+                    st.session_state.option_topic.append(topic)
+            st.session_state.add_topic = True
+            st.experimental_rerun()
     
     st.session_state.add_topic = False
 
@@ -42,8 +44,15 @@ def choose_topic():
 def next_btn():
     st.button(
         "タグ付けする！",
-        on_click=go_tweet_list,
+        on_click=go_annotation,
     )
 
-def go_tweet_list():
+def go_annotation():
+    payload = {
+        'topics': st.session_state.chosen_topic,
+    }
+    res = requests.post(
+        f"http://api_server:8080/topics/{st.session_state.twitter_id}",
+        json=payload,
+    )
     st.session_state.page_name = 'annotation'
