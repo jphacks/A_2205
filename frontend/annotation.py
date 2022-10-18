@@ -83,7 +83,7 @@ def next_btn():
 
 def go_tweet_list():
     payload = {
-        'labels': st.session_state.labels,
+        'labels': list(st.session_state.labels.items()),
     }
     res = requests.post(
         f"http://api_server:8080/train/{st.session_state.twitter_id}",
