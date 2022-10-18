@@ -18,7 +18,6 @@ BACKGROUND_IMAGE_PATH = {
     'choose_topic': 'images/black.png',
     'annotation': 'images/black.png',
     'tweet_list': 'images/black.png',
-    'page2': 'images/black.png'
 }
 
 def init():
@@ -39,11 +38,7 @@ def init():
         st.session_state.done_reload = {}
         st.session_state.init_annotation = False
 
-def page2():
-    with st.container():
-        st.write('page2')
-
-pages = {'login':login, 'choose_topic':choose_topic, 'annotation':annotation, 'tweet_list':tweet_list, 'page2':page2}
+pages = {'login':login, 'choose_topic':choose_topic, 'annotation':annotation, 'tweet_list':tweet_list}
 
 
 init()
@@ -52,6 +47,7 @@ init()
 bg_img_path = BACKGROUND_IMAGE_PATH[st.session_state.page_name]
 set_png_as_page_bg(bg_img_path)
 
+# show page content
 now_page = pages[st.session_state.page_name]
 now_page()
 

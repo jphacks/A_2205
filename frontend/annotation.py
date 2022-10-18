@@ -77,7 +77,7 @@ def annotation():
 
 def next_btn():
     st.button(
-        "ツイートを見る！",
+        "ツイートを見る🤗",
         on_click=go_tweet_list,
     )
 

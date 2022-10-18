@@ -43,7 +43,7 @@ def choose_topic():
 
 def next_btn():
     st.button(
-        "タグ付けする！",
+        "タグ付けに進む💪",
         on_click=go_annotation,
     )
 
