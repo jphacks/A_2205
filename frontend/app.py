@@ -37,6 +37,7 @@ def init():
         st.session_state.annotate_count = 0
         st.session_state.labels = {}
         st.session_state.done_reload = {}
+        st.session_state.init_annotation = False
 
 def page2():
     with st.container():

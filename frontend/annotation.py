@@ -9,13 +9,24 @@ def tweet_to_html(url):
     return response["html"]
 
 def annotation():
-    MIN_NUM_TWEET = 3
-    res = requests.get(f"http://api_server:8080/tweets/{st.session_state.twitter_id}")
-    result = json.loads(res.json()["data"])
+    NUM_MIN_TWEET = 3
+    NUM_DEAFULT_SHOW_TWEET = 10
+    if not st.session_state.init_annotation:
+        res = requests.get(f"http://api_server:8080/tweets/{st.session_state.twitter_id}")
+        st.session_state.not_annotated_tweets = json.loads(res.json()["data"])
+        st.session_state.init_annotation = True
+    
+    show_tweets = st.session_state.not_annotated_tweets[:NUM_DEAFULT_SHOW_TWEET]
 
-    if st.button('次へ'):
+    button_text = '次のラベルへ' if st.session_state.annotate_count/len(st.session_state.chosen_topic)!=1. else 'ツイートを見る！'
+    if st.button(button_text):
         st.session_state.annotate_count += 1
+        # exclude labeled tweets
+        st.session_state.not_annotated_tweets = [tw for tw in st.session_state.not_annotated_tweets if tw['id'] not in st.session_state.labels]
+        show_tweets = st.session_state.not_annotated_tweets[:NUM_DEAFULT_SHOW_TWEET]
+    
     topic = st.session_state.chosen_topic[st.session_state.annotate_count]
+    num_selected_tweets = sum(True for v in st.session_state.labels.values() if v==topic)
 
     # topic progress bar
     st.progress(st.session_state.annotate_count/len(st.session_state.chosen_topic))
@@ -25,15 +36,10 @@ def annotation():
     )
 
     # tweet selection progress bar
-    num_selected_tweets = sum(True for v in st.session_state.labels.values() if v==topic)
-    st.text(f'{num_selected_tweets}/{MIN_NUM_TWEET}')
-    st.progress(num_selected_tweets/MIN_NUM_TWEET)
-    if num_selected_tweets==MIN_NUM_TWEET:
-        st.balloons()
-        st.balloons()
-        st.balloons()
+    st.text(f'{num_selected_tweets}/{NUM_MIN_TWEET}')
+    st.progress(num_selected_tweets/NUM_MIN_TWEET)
     
-    for tweet in result[:3]:
+    for tweet in show_tweets:
         tweet_id = tweet["id"]
         author_name = tweet["author_name"]
         url = f"https://twitter.com/{author_name}/status/{tweet_id}"
