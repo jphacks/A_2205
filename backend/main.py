@@ -8,9 +8,15 @@ from typing import List, Tuple
 
 from crawl import crawl_tweets
 
+import datasets
+from setfit import SetFitModel, SetFitModelTrainer
+
+BASE_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
 
 class Topic(BaseModel):
     topics: List[str]
+
 
 class Label(BaseModel):
     labels: List[Tuple[int, str]]
@@ -81,7 +87,6 @@ def get_topics(username: str):
     return {"data": topics}
 
 
-
 @app.post("/train/{username}")
 def train(username: str, labels: Label):
     if not check_if_user_exists(username):
@@ -95,7 +100,15 @@ def train(username: str, labels: Label):
         df.loc[idx, "annotated"] = True
     df.to_csv(f"users/{username}/tweets.csv", index=False)
 
-    # TODO: start training
+    # TODO: reshape annotated data
+    dataset = datasets.Dataset.from_pandas(df)
+    model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
+    trainer = SetFitModelTrainer(
+        model=model,
+        train_dataset=dataset,
+    )
+    trainer.train()
+    trainer.model.save_pretrained(f"users/{username}/model")
 
     return {"message": "Training..."}
 
@@ -115,7 +128,9 @@ def get_tweets(username: str, max_results: int = 10, topics: List[str] = Query(N
     if topics is not None:
         tweets = tweets[np.isin(tweets["topic"], topics)]
 
-    return {"data": tweets.head(max_results).to_json(orient="records", force_ascii=False)}
+    return {
+        "data": tweets.head(max_results).to_json(orient="records", force_ascii=False)
+    }
 
 
 @app.get("/podcast/{username}/{topic}")
@@ -131,4 +146,3 @@ def get_podcast(username: str, topic: str):
         script += f"{tweet['author_name']}さんのツイートです．{tweet['text']}\n"
 
     return {"data": script}
-
