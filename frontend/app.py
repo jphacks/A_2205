@@ -11,6 +11,7 @@ from choose_topic import choose_topic
 from annotation import annotation
 from tweet_list import tweet_list
 from utils import set_png_as_page_bg
+import queue
 
 
 BACKGROUND_IMAGE_PATH = {
@@ -37,6 +38,7 @@ def init():
         st.session_state.labels = {}
         st.session_state.done_reload = {}
         st.session_state.init_annotation = False
+        st.session_state.play_id = []
 
 pages = {'login':login, 'choose_topic':choose_topic, 'annotation':annotation, 'tweet_list':tweet_list}
 
