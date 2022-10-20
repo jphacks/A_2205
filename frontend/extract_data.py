@@ -11,7 +11,7 @@ def extract_text_from_(url):
     extractor = ExtractContent()
 
     opt = {
-        "threshold": 50,
+        "threshold": 0,
     }
     extractor.set_option(opt)
 
