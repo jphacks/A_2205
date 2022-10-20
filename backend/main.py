@@ -13,6 +13,11 @@ import wave
 
 from crawl import crawl_tweets
 
+import datasets
+from setfit import SetFitModel, SetFitModelTrainer
+
+BASE_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
 
 class Topic(BaseModel):
     topics: List[str]
@@ -103,7 +108,15 @@ def train(username: str, labels: Label):
         df.loc[idx, "annotated"] = True
     df.to_csv(f"users/{username}/tweets.csv", index=False)
 
-    # TODO: start training
+    # TODO: reshape annotated data
+    dataset = datasets.Dataset.from_pandas(df)
+    model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
+    trainer = SetFitModelTrainer(
+        model=model,
+        train_dataset=dataset,
+    )
+    trainer.train()
+    trainer.model.save_pretrained(f"users/{username}/model")
 
     return {"message": "Training..."}
 

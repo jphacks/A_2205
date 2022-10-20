@@ -1,6 +1,6 @@
 import re
-from bs4 import BeautifulSoup
-import requests as req
+from extractcontent3 import ExtractContent
+import requests
 
 
 def extract_url_from_(tweet): 
@@ -8,18 +8,16 @@ def extract_url_from_(tweet):
     return url 
 
 def extract_text_from_(url):
-    html = req.get(url).text
-    soup = BeautifulSoup(html, 'html.parser')
-    #print(soup.prettify)
+    extractor = ExtractContent()
 
-    for script in soup(["script", "style"]):
-        script.decompose()
+    opt = {
+        "threshold": 50,
+    }
+    extractor.set_option(opt)
 
-    #print(soup)
+    res = requests.get(url)
+    html = res.text
+    extractor.analyse(html)
+    text, title = extractor.as_text()
 
-    text=soup.get_text()
-    #print(text)
-    lines= [line.strip() for line in text.splitlines()]
-    text="\n".join(line for line in lines if line)
-
-    return text
+    return text, title
