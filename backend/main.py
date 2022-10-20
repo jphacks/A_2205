@@ -1,10 +1,15 @@
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, BackgroundTasks
 from pydantic import BaseModel
 import os
 import shutil
 from typing import List, Tuple
+
+from ttslearn.pretrained import create_tts_engine
+from scipy.io.wavfile import read, write
+import base64
+import wave
 
 from crawl import crawl_tweets
 
@@ -12,8 +17,13 @@ from crawl import crawl_tweets
 class Topic(BaseModel):
     topics: List[str]
 
+
 class Label(BaseModel):
     labels: List[Tuple[int, str]]
+
+
+class Text(BaseModel):
+    text: str
 
 
 app = FastAPI()
@@ -62,7 +72,6 @@ def delete_user(username: str):
 def update_topics(username: str, topics: Topic):
     if not check_if_user_exists(username):
         return {"message": f"User {username} does not exist!"}
-
     with open(f"users/{username}/config", "w") as f:
         f.write(",".join(topics.topics))
 
@@ -79,7 +88,6 @@ def get_topics(username: str):
         topics = f.readline().split(",")
 
     return {"data": topics}
-
 
 
 @app.post("/train/{username}")
@@ -107,7 +115,7 @@ def update(username: str):
 
 
 @app.get("/tweets/{username}")
-def get_tweets(username: str, max_results: int = 10, topics: List[str] = Query(None)):
+def get_tweets(username: str, max_results: int = 30, topics: List[str] = Query(None)):
     if not check_if_user_exists(username):
         return {"message": f"User {username} does not exist!"}
 
@@ -115,7 +123,9 @@ def get_tweets(username: str, max_results: int = 10, topics: List[str] = Query(N
     if topics is not None:
         tweets = tweets[np.isin(tweets["topic"], topics)]
 
-    return {"data": tweets.head(max_results).to_json(orient="records", force_ascii=False)}
+    return {
+        "data": tweets.head(max_results).to_json(orient="records", force_ascii=False)
+    }
 
 
 @app.get("/podcast/{username}/{topic}")
@@ -132,3 +142,27 @@ def get_podcast(username: str, topic: str):
 
     return {"data": script}
 
+
+@app.get("/audio/{username}/{tweet_id}")
+async def get_audio(
+    username: str, tweet_id: str, text: Text, background_tasks: BackgroundTasks
+):
+    if not check_if_user_exists(username):
+        return {"message": f"User {username} does not exist!"}
+
+    pwg_engine = create_tts_engine("multspk_tacotron2_pwg_jvs16k", device="cpu")
+    wav, sr = pwg_engine.tts(text.text, spk_id=93)
+    write(f"users/{username}/{tweet_id}.wav", rate=sr, data=wav)
+
+    with open(f"users/{username}/{tweet_id}.wav", "rb") as f:
+        contents = f.read()
+    with wave.open(f"users/{username}/{tweet_id}.wav", "rb") as f:
+        fr = f.getframerate()
+        fn = f.getnframes()
+
+    play_time = fn / fr
+    result = {
+        "data": "data:audio/ogg;base64,%s" % (base64.b64encode(contents).decode())
+    }
+
+    return result, play_time
