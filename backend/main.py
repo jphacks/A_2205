@@ -108,7 +108,7 @@ def train(username: str, labels: Label):
         df.loc[idx, "annotated"] = True
     df.to_csv(f"users/{username}/tweets.csv", index=False)
 
-    # TODO: reshape annotated data
+    TODO: reshape annotated data
     dataset = datasets.Dataset.from_pandas(df)
     model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
     trainer = SetFitModelTrainer(
@@ -117,6 +117,22 @@ def train(username: str, labels: Label):
     )
     trainer.train()
     trainer.model.save_pretrained(f"users/{username}/model")
+
+    return {"message": "Training..."}
+
+
+@app.post("/annotation/{username}")
+def train(username: str, labels: Label):
+    if not check_if_user_exists(username):
+        return {"message": f"User {username} does not exist!"}
+
+    # annotate
+    df = pd.read_csv(f"users/{username}/tweets.csv")
+    for tweet_id, label in labels.labels:
+        idx = df["id"] == tweet_id
+        df.loc[idx, "topic"] = label
+        df.loc[idx, "annotated"] = True
+    df.to_csv(f"users/{username}/tweets.csv", index=False)
 
     return {"message": "Training..."}
 
