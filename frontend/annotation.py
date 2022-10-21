@@ -54,8 +54,8 @@ def annotation():
         # show tweets
         for tweet in show_tweets:
             tweet_id = tweet["id"]
-            author_name = tweet["author_name"]
-            url = f"https://twitter.com/{author_name}/status/{tweet_id}"
+            author_id = tweet["author_id"]
+            url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
             with st.container():
                 check = st.checkbox(
@@ -68,7 +68,7 @@ def annotation():
                     if not st.session_state.done_reload.get(tweet_id):
                         st.session_state.done_reload[tweet_id] = True
                         st.experimental_rerun()
-                st.components.v1.html(html)
+                st.components.v1.html(html, height=300, scrolling=True)
                 st.write('---')
     else:
         st.header(
@@ -86,7 +86,7 @@ def go_tweet_list():
         'labels': list(st.session_state.labels.items()),
     }
     res = requests.post(
-        f"http://api_server:8080/train/{st.session_state.twitter_id}",
+        f"http://api_server:8080/annotation/{st.session_state.twitter_id}",
         json=payload,
     )
     st.session_state.page_name = 'tweet_list'
