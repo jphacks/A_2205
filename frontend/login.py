@@ -1,6 +1,9 @@
+import os
 import json
 import requests
 import streamlit as st
+
+API_ENDPOINT = os.environ.get("API_ENDPOINT")
 
 
 def login():
@@ -23,16 +26,16 @@ def next_btn():
 
 def go_choose_topic():
     res = requests.post(
-        f"http://api_server:8080/user/{st.session_state.twitter_id}",
+        f"{API_ENDPOINT}/user/{st.session_state.twitter_id}",
     )
-    res = requests.get(f"http://api_server:8080/tweets/{st.session_state.twitter_id}")
+    res = requests.get(f"{API_ENDPOINT}/tweets/{st.session_state.twitter_id}")
     result = json.loads(res.json()["data"])
 
     # st.session_state.result = result
 
     if result == []:
         res = requests.post(
-            f"http://api_server:8080/update/{st.session_state.twitter_id}",
+            f"{API_ENDPOINT}/update/{st.session_state.twitter_id}",
         )
 
     if sum(r["annotated"] for r in result):
