@@ -23,7 +23,7 @@ def annotation():
 
     show_tweets = st.session_state.not_annotated_tweets[:NUM_DEAFULT_SHOW_TWEET]
 
-    # count annotated topic
+    # count annotated topic num
     if st.session_state.annotate_count <= len(st.session_state.chosen_topic) - 1:
         if st.button("次のラベルへ"):
             st.session_state.annotate_count += 1
@@ -57,12 +57,12 @@ def annotation():
         st.header(f"{topic}のツイートを選択してください")
         # tweet selection progress bar
         st.text(f"{num_selected_tweets}/{NUM_MIN_TWEET}")
-        st.progress(num_selected_tweets / NUM_MIN_TWEET)
+        st.progress(min(num_selected_tweets / NUM_MIN_TWEET, 1.))
 
         # show tweets
         for tweet in show_tweets:
             tweet_id = tweet["id"]
-            author_id = tweet["author_id"]
+            author_id = tweet["author_name"]
             url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
             with st.container():
@@ -76,8 +76,8 @@ def annotation():
                     if not st.session_state.done_reload.get(tweet_id):
                         st.session_state.done_reload[tweet_id] = True
                         st.experimental_rerun()
-                st.markdown(html, unsafe_allow_html=True)
-                # st.components.v1.html(html, height=300, scrolling=True)
+                # st.markdown(html, unsafe_allow_html=True)
+                st.components.v1.html(html, height=300, scrolling=True)
                 st.write("---")
     else:
         st.header(f"全てのアノテーションが完了しました🎉")
