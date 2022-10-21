@@ -1,7 +1,9 @@
+import os
 import json
 import requests
 import streamlit as st
 
+API_ENDPOINT = os.environ.get("BACKEND_URL")
 
 def tweet_to_html(url):
     api = f"https://publish.twitter.com/oembed?url={url}"
@@ -16,7 +18,7 @@ def annotation():
     # get tweet at only first time
     if not st.session_state.init_annotation:
         res = requests.get(
-            f"http://api_server:8080/tweets/{st.session_state.twitter_id}"
+            f"{API_ENDPOINT/tweets/{st.session_state.twitter_id}"
         )
         st.session_state.not_annotated_tweets = json.loads(res.json()["data"])
         st.session_state.init_annotation = True
@@ -95,7 +97,7 @@ def go_tweet_list():
         "labels": list(st.session_state.labels.items()),
     }
     res = requests.post(
-        f"http://api_server:8080/annotation/{st.session_state.twitter_id}",
+        f"{API_ENDPOINT}/annotation/{st.session_state.twitter_id}",
         json=payload,
     )
     st.session_state.page_name = "tweet_list"

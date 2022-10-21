@@ -10,6 +10,8 @@ import time
 import threading
 import queue
 
+API_ENDPOINT = os.environ.get("BACKEND_URL")
+
 
 def tweet_to_html(url):
     api = f"https://publish.twitter.com/oembed?url={url}"
@@ -17,11 +19,13 @@ def tweet_to_html(url):
     response = res.json()
     return response["html"]
 
+
 def back_btn():
     st.button("戻る", on_click=go_login)
 
+
 def go_login():
-    st.session_state.page_name = 'login'
+    st.session_state.page_name = "login"
 
 
 class Worker1(threading.Thread):
@@ -29,6 +33,7 @@ class Worker1(threading.Thread):
     Convert text to speech.
     Put audio_str and its meta-information into the queue.
     """
+
     def __init__(self, text_list, twitter_id, **kwargs):
         super().__init__(**kwargs)
         self.queue = queue.Queue()
@@ -38,23 +43,24 @@ class Worker1(threading.Thread):
     def run(self):
         for text, tweet_id, author_name in self.text_list:
             payload = {
-                "text":author_name + "さんのツイートです。"+""+ text,
+                "text": author_name + "さんのツイートです。" + "" + text,
             }
             res = requests.get(
-                f'http://api_server:8080/audio/{self.twitter_id}/{tweet_id}', 
-                json=payload
+                f"{API_ENDPOINT}/audio/{self.twitter_id}/{tweet_id}",
+                json=payload,
             )
             result = res.json()
             self.queue.put(result)
-        
+
         # Put the flag of end.
-        self.queue.put([{"data":"finish"},1])
+        self.queue.put([{"data": "finish"}, 1])
 
 
 class Worker2(threading.Thread):
     """
     Get tweet_info from the queue and play audio.
     """
+
     def __init__(self, worker, **kwargs):
         super().__init__(**kwargs)
         self.worker = worker
@@ -65,23 +71,26 @@ class Worker2(threading.Thread):
             audio_placeholder = st.empty()
             tweet_info = self.queue.get()
             audio_str = tweet_info[0]["data"]
-            play_time = tweet_info[1] 
+            play_time = tweet_info[1]
 
-            if audio_str=="finish":
+            if audio_str == "finish":
                 break
 
-            audio_html = """
+            audio_html = (
+                """
                             <audio autoplay=True>
                             <source src="%s" type="audio/ogg" autoplay=True>
                             Your browser does not support the audio element.
                             </audio>
-                        """ %audio_str
+                        """
+                % audio_str
+            )
 
-            time.sleep(0.5) 
+            time.sleep(0.5)
             audio_placeholder.markdown(audio_html, unsafe_allow_html=True)
-            time.sleep(play_time+1)
+            time.sleep(play_time + 1)
             self.queue.task_done()
-            
+
 
 def tweet_list():
     worker1 = None
@@ -89,10 +98,16 @@ def tweet_list():
 
     # worker1 を制御（起動/停止）する部分
     with st.container():
-        if st.button('Play'):
-            text_list = [[tweet["text"],tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets if tweet["id"] in st.session_state.play_id]
+        if st.button("Play"):
+            text_list = [
+                [tweet["text"], tweet["id"], tweet["author_name"]]
+                for tweet in st.session_state.tweets
+                if tweet["id"] in st.session_state.play_id
+            ]
 
-            worker1 = st.session_state.worker1 = Worker1(text_list=text_list, twitter_id=st.session_state.twitter_id)
+            worker1 = st.session_state.worker1 = Worker1(
+                text_list=text_list, twitter_id=st.session_state.twitter_id
+            )
             add_script_run_ctx(worker1)
             worker1.start()
 
@@ -107,22 +122,25 @@ def tweet_list():
         if worker2:
             while worker2.is_alive():
                 time.sleep(1)
-    #--------------------------------------
+    # --------------------------------------
 
     username = st.session_state.twitter_id
-    res = requests.get(f'http://api_server:8080/topics/{username}')
+    res = requests.get(f"{API_ENDPOINT}:8080/topics/{username}")
     chosen_topic = res.json()["data"]
 
-    topics = st.multiselect(
-            label='トピックを選んでください',
+    topics = (
+        st.multiselect(
+            label="トピックを選んでください",
             options=chosen_topic,
-        ) or None
+        )
+        or None
+    )
 
-    res = requests.get(f'http://api_server:8080/tweets/{username}')
+    res = requests.get(f"{API_ENDPOINT}/tweets/{username}")
     tweets = json.loads(res.json()["data"])
 
     if topics is not None:
-        tweets = [tweet for tweet in tweets if tweet['topic'] in topics]
+        tweets = [tweet for tweet in tweets if tweet["topic"] in topics]
 
     st.session_state.tweets = tweets
 
@@ -132,15 +150,14 @@ def tweet_list():
             author_id = tweet["author_id"]
 
             check = st.checkbox(
-                    f'再生リスト',
-                    key=tweet_id,
-                )
+                f"再生リスト",
+                key=tweet_id,
+            )
             if check:
                 st.session_state.play_id.append(tweet_id)
 
             url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
             components.html(html, height=300, scrolling=True)
-
 
     back_btn()
