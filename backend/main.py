@@ -171,8 +171,8 @@ def get_podcast(username: str, topic: str):
 
 
 @app.get("/audio/{username}/{tweet_id}")
-async def get_audio(
-    username: str, tweet_id: str, text: Text, background_tasks: BackgroundTasks
+def get_audio(
+    username: str, tweet_id: str, text: Text
 ):
     if not check_if_user_exists(username):
         return {"message": f"User {username} does not exist!"}
