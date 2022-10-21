@@ -32,9 +32,9 @@ class Worker1(threading.Thread):
         self.twitter_id = twitter_id
 
     def run(self):
-        for text, tweet_id in self.text_list:
+        for text, tweet_id, author_name in self.text_list:
             payload = {
-                "text":text,
+                "text":author_name + "さんのツイートです。"+""+ text,
             }
             res = requests.get(
                 f'http://api_server:8080/audio/{self.twitter_id}/{tweet_id}', 
@@ -82,7 +82,7 @@ def tweet_list():
     # worker1 を制御（起動/停止）する部分
     with st.container():
         if st.button('Play'):
-            text_list = [[tweet["text"],tweet["id"]] for tweet in st.session_state.tweets if tweet["id"] in st.session_state.play_id]
+            text_list = [[tweet["text"],tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets if tweet["id"] in st.session_state.play_id]
 
             worker1 = st.session_state.worker1 = Worker1(text_list=text_list, twitter_id=st.session_state.twitter_id)
             add_script_run_ctx(worker1)
@@ -121,7 +121,7 @@ def tweet_list():
     for tweet in tweets[:10]:
         with st.container():
             tweet_id = tweet["id"]
-            author_name = tweet["author_name"]
+            author_id = tweet["author_id"]
 
             check = st.checkbox(
                     f'再生リスト',
@@ -130,7 +130,7 @@ def tweet_list():
             if check:
                 st.session_state.play_id.append(tweet_id)
 
-            url = f"https://twitter.com/{author_name}/status/{tweet_id}"
+            url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
             components.html(html, height=300, scrolling=True)
 
