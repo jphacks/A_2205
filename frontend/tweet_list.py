@@ -78,8 +78,8 @@ def tweet_list():
 
     
     col1, col2 = st.columns([1,1])
-    ltweets = tweets[:len(tweets)//2+1]
-    rtweets = tweets[len(tweets)//2+1:]
+    ltweets = tweets[:math.ceil(len(tweets)/2)]
+    rtweets = tweets[math.ceil(len(tweets)/2):]
 
     with col1:
         for tweet in ltweets:
@@ -89,7 +89,7 @@ def tweet_list():
 
             url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
-            st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topics is None else st.empty()
+            # st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topics is None else st.empty()
             components.html(html, height=300, scrolling=True)
     with col2:
         for tweet in rtweets:
@@ -99,11 +99,11 @@ def tweet_list():
 
             url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
-            st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topic is None  else st.empty()
+            # st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topic is None  else st.empty()
             components.html(html, height=300, scrolling=True)
     
 
-    if play:
+    if play and (topics is not None):
         text_list = [[tweet["text"], tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets]
 
         worker1 = st.session_state.worker1 = Worker1(deamon=True, text_list=text_list, twitter_id=st.session_state.twitter_id)
@@ -142,5 +142,3 @@ def tweet_list():
                     worker1.join()
                     st.experimental_rerun()
             time.sleep(1)
-
-                
