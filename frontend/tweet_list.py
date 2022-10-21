@@ -25,6 +25,10 @@ def go_login():
 
 
 class Worker1(threading.Thread):
+    """
+    Convert text to speech.
+    Put audio_str and its meta-information into the queue.
+    """
     def __init__(self, text_list, twitter_id, **kwargs):
         super().__init__(**kwargs)
         self.queue = queue.Queue()
@@ -43,10 +47,14 @@ class Worker1(threading.Thread):
             result = res.json()
             self.queue.put(result)
         
+        # Put the flag of end.
         self.queue.put([{"data":"finish"},1])
 
 
 class Worker2(threading.Thread):
+    """
+    Get tweet_info from the queue and play audio.
+    """"
     def __init__(self, worker, **kwargs):
         super().__init__(**kwargs)
         self.worker = worker
