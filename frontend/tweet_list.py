@@ -9,8 +9,9 @@ import base64
 import time
 import threading
 import queue
+from itertools import islice
+import math
 
-from time import sleep
 
 @st.cache
 def tweet_to_html(url):
@@ -51,38 +52,6 @@ class Worker1(threading.Thread):
         
         # Put the flag of end.
         self.queue.put([{"data":"finish"},1])
-
-
-# class Worker2(threading.Thread):
-#     """
-#     Get tweet_info from the queue and play audio.
-#     """
-#     def __init__(self, deamon, worker, **kwargs):
-#         super().__init__(**kwargs)
-#         self.worker = worker
-#         self.queue = worker.queue
-
-#     def run(self):
-#         while True:
-#             audio_placeholder = st.empty()
-#             tweet_info = self.queue.get()
-#             audio_str = tweet_info[0]["data"]
-#             play_time = tweet_info[1] 
-
-#             if audio_str=="finish":
-#                 break
-
-#             audio_html = """
-#                             <audio autoplay=True>
-#                             <source src="%s" type="audio/ogg" autoplay=True>
-#                             Your browser does not support the audio element.
-#                             </audio>
-#                         """ %audio_str
-
-#             time.sleep(0.5) 
-#             audio_placeholder.markdown(audio_html, unsafe_allow_html=True)
-#             time.sleep(play_time+1)
-#             self.queue.task_done()
             
 
 def tweet_list():
@@ -107,13 +76,32 @@ def tweet_list():
     if topics is not None:
         tweets = st.session_state.tweets = [tweet for tweet in tweets if tweet['topic'] in topics]
 
-    for tweet in tweets[:10]:
-        tweet_id = tweet["id"]
-        author_id = tweet["author_id"]
+    
+    col1, col2 = st.columns([1,1])
+    ltweets = tweets[:len(tweets)//2+1]
+    rtweets = tweets[len(tweets)//2+1:]
 
-        url = f"https://twitter.com/{author_id}/status/{tweet_id}"
-        html = tweet_to_html(url)
-        components.html(html, height=300, scrolling=True)
+    with col1:
+        for tweet in ltweets:
+            tweet_id = tweet["id"]
+            author_id = tweet["author_id"]
+            topic = tweet["topic"]
+
+            url = f"https://twitter.com/{author_id}/status/{tweet_id}"
+            html = tweet_to_html(url)
+            st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topics is None else st.empty()
+            components.html(html, height=300, scrolling=True)
+    with col2:
+        for tweet in rtweets:
+            tweet_id = tweet["id"]
+            author_id = tweet["author_id"]
+            topic = tweet["topic"]
+
+            url = f"https://twitter.com/{author_id}/status/{tweet_id}"
+            html = tweet_to_html(url)
+            st.markdown(f'<sub style="font-size: 100%; color: black;background:white">{topic}</sub>', unsafe_allow_html=True) if topic is not None and topic is None  else st.empty()
+            components.html(html, height=300, scrolling=True)
+    
 
     if play:
         text_list = [[tweet["text"], tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets]
