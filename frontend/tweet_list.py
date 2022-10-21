@@ -54,7 +54,7 @@ class Worker1(threading.Thread):
 class Worker2(threading.Thread):
     """
     Get tweet_info from the queue and play audio.
-    """"
+    """
     def __init__(self, worker, **kwargs):
         super().__init__(**kwargs)
         self.worker = worker
