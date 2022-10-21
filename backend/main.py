@@ -14,7 +14,7 @@ import wave
 from crawl import crawl_tweets
 
 import datasets
-from setfit import SetFitModel, SetFitModelTrainer
+from setfit import SetFitModel, SetFitTrainer
 
 BASE_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
@@ -39,6 +39,20 @@ if not os.path.exists("users"):
 
 def check_if_user_exists(username: str) -> bool:
     return os.path.exists(f"users/{username}")
+
+
+def train_model(username: str, df: pd.DataFrame) -> None:
+    print(f"user {username} : model training start")
+    print()
+    dataset = datasets.Dataset.from_pandas(df[["text", "label"]])
+    model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
+    trainer = SetFitTrainer(
+        model=model,
+        train_dataset=dataset,
+    )
+    trainer.train()
+    trainer.model.save_pretrained(f"users/{username}/model")
+    print(f"user {username} : model training end")
 
 
 @app.get("/")
@@ -95,11 +109,10 @@ def get_topics(username: str):
     return {"data": topics}
 
 
-@app.post("/train/{username}")
-def train(username: str, labels: Label):
+@app.post("/annotation/{username}")
+async def annotate(username: str, labels: Label, background_tasks: BackgroundTasks):
     if not check_if_user_exists(username):
         return {"message": f"User {username} does not exist!"}
-
     # annotate
     df = pd.read_csv(f"users/{username}/tweets.csv")
     for tweet_id, label in labels.labels:
@@ -107,32 +120,17 @@ def train(username: str, labels: Label):
         df.loc[idx, "topic"] = label
         df.loc[idx, "annotated"] = True
     df.to_csv(f"users/{username}/tweets.csv", index=False)
+
+    with open(f"users/{username}/config", "r") as f:
+        topics: List[str] = f.readline().split(",")
+    topics_to_label = {label: i for i, label in enumerate(topics)}
+
+    df = pd.read_csv(f"users/{username}/tweets.csv")
+    df = df[df["annotated"]]
+    df["label"] = df["topic"].apply(lambda x: topics_to_label[x])
 
     # TODO: reshape annotated data
-    dataset = datasets.Dataset.from_pandas(df)
-    model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
-    trainer = SetFitModelTrainer(
-        model=model,
-        train_dataset=dataset,
-    )
-    trainer.train()
-    trainer.model.save_pretrained(f"users/{username}/model")
-
-    return {"message": "Training..."}
-
-
-@app.post("/annotation/{username}")
-def train(username: str, labels: Label):
-    if not check_if_user_exists(username):
-        return {"message": f"User {username} does not exist!"}
-
-    # annotate
-    df = pd.read_csv(f"users/{username}/tweets.csv")
-    for tweet_id, label in labels.labels:
-        idx = df["id"] == tweet_id
-        df.loc[idx, "topic"] = label
-        df.loc[idx, "annotated"] = True
-    df.to_csv(f"users/{username}/tweets.csv", index=False)
+    background_tasks.add_task(train_model, username, df)
 
     return {"message": "Training..."}
 

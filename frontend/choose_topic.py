@@ -7,19 +7,11 @@ import streamlit as st
 
 def choose_topic():
     # select topic
-    if st.session_state.add_topic:
-        chosen_topic = st.multiselect(
-            label='あなたがよく見るツイートのトピックを選択してください',
-            options=st.session_state.option_topic,
-            default=st.session_state.chosen_topic,
-        )
-    else:
-        chosen_topic = st.multiselect(
-            label='あなたがよく見るツイートのトピックを選択してください',
-            options=st.session_state.option_topic,
-            default=st.session_state.chosen_topic,
-        )
-        st.session_state.chosen_topic = chosen_topic
+    st.session_state.chosen_topic_tmp = st.multiselect(
+        label='あなたがよく見るツイートのトピックを選択してください',
+        options=st.session_state.option_topic,
+        default=st.session_state.chosen_topic
+    )
     
     # add original topic
     topic = st.text_input(
@@ -27,17 +19,14 @@ def choose_topic():
         value="",
         placeholder='(例)テニス、就活、...etc'
     )
-    if st.button(label='追加'):
-        if topic:
-            if topic not in st.session_state.chosen_topic:
-                st.session_state.chosen_topic.append(topic)
-                if topic not in st.session_state.option_topic:
-                    st.session_state.option_topic.append(topic)
-            st.session_state.add_topic = True
-            st.experimental_rerun()
+    if st.button(label='追加') and topic:
+        st.session_state.chosen_topic = st.session_state.chosen_topic_tmp[:]
+        if topic not in st.session_state.option_topic:
+            st.session_state.option_topic.append(topic)
+        if topic not in st.session_state.chosen_topic:
+            st.session_state.chosen_topic.append(topic)
+        st.experimental_rerun()
     
-    st.session_state.add_topic = False
-
     next_btn()
 
 
@@ -48,6 +37,8 @@ def next_btn():
     )
 
 def go_annotation():
+    st.session_state.chosen_topic = st.session_state.chosen_topic_tmp[:]
+
     payload = {
         'topics': st.session_state.chosen_topic,
     }
