@@ -4,6 +4,7 @@ EXPOSE 8080
 ENV PORT=8080
 
 WORKDIR /backend
+COPY . /backend
 
 RUN apt-get update && apt-get install -y \
     build-essential \
