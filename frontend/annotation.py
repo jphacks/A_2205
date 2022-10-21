@@ -2,7 +2,7 @@ import json
 import requests
 import streamlit as st
 
-
+@st.cache
 def tweet_to_html(url):
     api = f"https://publish.twitter.com/oembed?url={url}"
     res = requests.get(api)
@@ -12,7 +12,7 @@ def tweet_to_html(url):
 
 def annotation():
     NUM_MIN_TWEET = 3
-    NUM_DEAFULT_SHOW_TWEET = 30
+    NUM_DEAFULT_SHOW_TWEET = 10
     # get tweet at only first time
     if not st.session_state.init_annotation:
         res = requests.get(
