@@ -6,6 +6,7 @@ import streamlit as st
 def tweet_to_html(url):
     api = f"https://publish.twitter.com/oembed?url={url}"
     res = requests.get(api)
+    print(res.raise_for_status())
     response = res.json()
     return response["html"]
 
@@ -62,7 +63,7 @@ def annotation():
         # show tweets
         for tweet in show_tweets:
             tweet_id = tweet["id"]
-            author_id = tweet["author_name"]
+            author_id = tweet["author_id"]
             url = f"https://twitter.com/{author_id}/status/{tweet_id}"
             html = tweet_to_html(url)
             with st.container():
