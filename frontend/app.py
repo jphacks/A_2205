@@ -26,6 +26,7 @@ def init():
         st.session_state.init=True
         st.session_state.page_name = 'login'
         st.session_state.twitter_id = None
+        st.session_state.username = None
         st.session_state.option_topic = [
             'ファッション','ビューティー', 'アウトドア', 'アート', 'カルチャー',
             'アニメ', '漫画', 'ビジネス', '金融', '食べ物', '旅行', 'エンターテインメント',

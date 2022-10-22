@@ -1,6 +1,10 @@
+import os
 import json
 import requests
 import streamlit as st
+
+API_ENDPOINT = os.environ.get("API_ENDPOINT")
+
 
 @st.cache
 def tweet_to_html(url):
@@ -16,9 +20,7 @@ def annotation():
     NUM_DEAFULT_SHOW_TWEET = 10
     # get tweet at only first time
     if not st.session_state.init_annotation:
-        res = requests.get(
-            f"http://api_server:8080/tweets/{st.session_state.twitter_id}"
-        )
+        res = requests.get(f"{API_ENDPOINT}/tweets/{st.session_state.twitter_id}")
         st.session_state.not_annotated_tweets = json.loads(res.json()["data"])
         st.session_state.init_annotation = True
 
@@ -58,7 +60,7 @@ def annotation():
         st.header(f"{topic}のツイートを選択してください")
         # tweet selection progress bar
         st.text(f"{num_selected_tweets}/{NUM_MIN_TWEET}")
-        st.progress(min(num_selected_tweets / NUM_MIN_TWEET, 1.))
+        st.progress(min(num_selected_tweets / NUM_MIN_TWEET, 1.0))
 
         # show tweets
         for tweet in show_tweets:
@@ -96,7 +98,7 @@ def go_tweet_list():
         "labels": list(st.session_state.labels.items()),
     }
     res = requests.post(
-        f"http://api_server:8080/annotation/{st.session_state.twitter_id}",
+        f"{API_ENDPOINT}/annotation/{st.session_state.twitter_id}",
         json=payload,
     )
     st.session_state.page_name = "tweet_list"
