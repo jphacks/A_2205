@@ -38,13 +38,17 @@ if not os.path.exists("users"):
 
 
 def check_if_user_exists(username: str, twitter_id: str) -> bool:
-    return os.path.exists(f"users/{username}") and os.path.exists(f"users/{username}/{twitter_id}")
+    return os.path.exists(f"users/{username}") and os.path.exists(
+        f"users/{username}/{twitter_id}"
+    )
 
 
-def train_model(username: str, twitter_id: str, df: pd.DataFrame) -> None:
+def train_model(
+    username: str, twitter_id: str, train_df: pd.DataFrame, labels_to_topics: dict
+) -> None:
     print(f"user {username}/{twitter_id} : model training start")
     print()
-    dataset = datasets.Dataset.from_pandas(df[["text", "label"]])
+    dataset = datasets.Dataset.from_pandas(train_df[["text", "label"]])
     model = SetFitModel.from_pretrained(BASE_MODEL_NAME)
     trainer = SetFitTrainer(
         model=model,
@@ -52,6 +56,17 @@ def train_model(username: str, twitter_id: str, df: pd.DataFrame) -> None:
     )
     trainer.train()
     trainer.model.save_pretrained(f"users/{username}/{twitter_id}/model")
+
+    # inference
+    # load csv
+    df = pd.read_csv(f"users/{username}/{twitter_id}/tweets.csv")
+    predicted = trainer.model.predict(df["text"].tolist())
+    predicted = list(map(lambda x: labels_to_topics[x], predicted))
+    assert len(predicted) == len(df)
+    for i in df.index:
+        df.loc[i, "topic"] = predicted[i]
+        df.loc[i, "annotated"] = True
+    df.to_csv(f"users/{username}/{twitter_id}/tweets.csv", index=False)
     print(f"user {username}/{twitter_id} : model training end")
 
 
@@ -112,7 +127,9 @@ def get_topics(username: str, twitter_id: str):
 
 
 @app.post("/annotation/{username}/{twitter_id}")
-async def annotate(username: str, twitter_id: str, labels: Label, background_tasks: BackgroundTasks):
+async def annotate(
+    username: str, twitter_id: str, labels: Label, background_tasks: BackgroundTasks
+):
     if not check_if_user_exists(username, twitter_id):
         return {"message": f"User {username}/{twitter_id} does not exist!"}
     # annotate
@@ -125,14 +142,15 @@ async def annotate(username: str, twitter_id: str, labels: Label, background_tas
 
     with open(f"users/{username}/{twitter_id}/config", "r") as f:
         topics: List[str] = f.readline().split(",")
-    topics_to_label = {label: i for i, label in enumerate(topics)}
+    topics_to_labels = {label: i for i, label in enumerate(topics)}
+    labels_to_topics = {i: label for i, label in enumerate(topics)}
 
-    df = pd.read_csv(f"users/{username}/{twitter_id}/tweets.csv")
-    df = df[df["annotated"]]
-    df["label"] = df["topic"].apply(lambda x: topics_to_label[x])
+    train_df = df[df["annotated"]]
+    train_df["label"] = train_df["topic"].apply(lambda x: topics_to_labels[x])
 
-    # TODO: reshape annotated data
-    background_tasks.add_task(train_model, username, df)
+    background_tasks.add_task(
+        train_model, username, twitter_id, train_df, labels_to_topics
+    )
 
     return {"message": "Training..."}
 
@@ -140,11 +158,18 @@ async def annotate(username: str, twitter_id: str, labels: Label, background_tas
 @app.post("/update/{username}/{twitter_id}")
 def update(username: str, twitter_id: str):
     crawl_tweets(username, twitter_id)
-    return {"message": f"Successfully updated liked tweets for user {username}/{twitter_id}."}
+    return {
+        "message": f"Successfully updated liked tweets for user {username}/{twitter_id}."
+    }
 
 
 @app.get("/tweets/{username}/{twitter_id}")
-def get_tweets(username: str, twitter_id: str, max_results: int = 30, topics: List[str] = Query(None)):
+def get_tweets(
+    username: str,
+    twitter_id: str,
+    max_results: int = 30,
+    topics: List[str] = Query(None),
+):
     if not check_if_user_exists(username, twitter_id):
         return {"message": f"User {username}/{twitter_id} does not exist!"}
 
@@ -173,9 +198,7 @@ def get_podcast(username: str, twitter_id: str, topic: str):
 
 
 @app.get("/audio/{username}/{twitter_id}/{tweet_id}")
-def get_audio(
-    username: str, twitter_id: str, tweet_id: str, text: Text
-):
+def get_audio(username: str, twitter_id: str, tweet_id: str, text: Text):
     if not check_if_user_exists(username, twitter_id):
         return {"message": f"User {username}/{twitter_id} does not exist!"}
 
