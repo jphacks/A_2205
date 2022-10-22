@@ -62,6 +62,20 @@ def annotation():
         st.text(f"{num_selected_tweets}/{NUM_MIN_TWEET}")
         st.progress(min(num_selected_tweets / NUM_MIN_TWEET, 1.0))
 
+
+        def check_button(tweet_id):
+            if st.session_state.labels.get(tweet_id):
+                del st.session_state.labels[tweet_id]
+            else:
+                st.session_state.labels[tweet_id] = topic
+
+            # reload to refrect to progress-bar
+            if not st.session_state.done_reload.get(tweet_id):
+                st.session_state.done_reload[tweet_id] = True
+            else:
+                del st.session_state.done_reload[tweet_id]
+
+
         # show tweets
         for tweet in show_tweets:
             tweet_id = tweet["id"]
@@ -72,23 +86,18 @@ def annotation():
                 check = st.checkbox(
                     f"{topic}のツイートです",
                     key=tweet_id,
+                    on_change=check_button,
+                    args=(tweet_id,)
                 )
-                if check:
-                    st.session_state.labels[tweet_id] = topic
-                    # reload to refrect to progress-bar
-                    if not st.session_state.done_reload.get(tweet_id):
-                        st.session_state.done_reload[tweet_id] = True
-                        st.experimental_rerun()
-                # st.markdown(html, unsafe_allow_html=True)
                 st.components.v1.html(html, height=300, scrolling=True)
                 st.write("---")
     else:
-        st.header(f"全てのアノテーションが完了しました🎉")
+        st.header(f"全てのアノテーションが完了しました:tada:")
 
 
 def next_btn():
     st.button(
-        "ツイートを見る🤗",
+        "ツイートを見る:hugging_face:",
         on_click=go_tweet_list,
     )
 

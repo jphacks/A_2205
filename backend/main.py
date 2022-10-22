@@ -202,9 +202,10 @@ def get_audio(username: str, twitter_id: str, tweet_id: str, text: Text):
     if not check_if_user_exists(username, twitter_id):
         return {"message": f"User {username}/{twitter_id} does not exist!"}
 
-    pwg_engine = create_tts_engine("multspk_tacotron2_pwg_jvs16k", device="cpu")
-    wav, sr = pwg_engine.tts(text.text, spk_id=93)
-    write(f"users/{username}/{twitter_id}/{tweet_id}.wav", rate=sr, data=wav)
+    if not os.path.exists(f"users/{username}/{twitter_id}/{tweet_id}.wav"):
+        pwg_engine = create_tts_engine("multspk_tacotron2_pwg_jvs16k", device="cpu")
+        wav, sr = pwg_engine.tts(text.text, spk_id=93)
+        write(f"users/{username}/{twitter_id}/{tweet_id}.wav", rate=sr, data=wav)
 
     with open(f"users/{username}/{twitter_id}/{tweet_id}.wav", "rb") as f:
         contents = f.read()

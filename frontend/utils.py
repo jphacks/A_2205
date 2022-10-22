@@ -1,8 +1,11 @@
 import base64
 import streamlit as st
+import os
 import re
 from extractcontent3 import ExtractContent
 import requests
+
+SUMMARIZE_API_KEY = os.environ.get("SUMMARIZE_API_KEY")
 
 def set_png_as_page_bg(main_bg):
     '''
@@ -46,6 +49,14 @@ def extract_text_from_(url):
     return text, title
 
 
+
+def masic_translate(text):
+    masic_words = {'JPHACKS':'ジャパンハックス'}
+    for key, value in masic_words.items():
+        text = text.replace(key, value)
+    return text
+
+
 def convert_text_into_speechable(text):
     # replace link into 'リンク'
     text, replace_num = re.subn('https?://(?:[-\w./]|(?:%[\da-fA-F]{2}))+', 'リンク', text)
@@ -53,12 +64,34 @@ def convert_text_into_speechable(text):
     if replace_num>=2 and text[-3:]=='リンク':
         text = text[:-3]
     # replace # into 'ハッシュタグ'
-    speechable_text = re.sub('#', 'ハッシュタグ', text)
-    return speechable_text
+    text = re.sub('#', 'ハッシュタグ', text)
+    # translate masic words
+    text = masic_translate(text)
+    return text
 
 
-def gen_manuscript(tweet_text):
+def summarize_text(text):
+    endpoint = 'https://clapi.asahi.com/extract'
+    headers = {
+        'x-api-key':SUMMARIZE_API_KEY,
+    }
+    payload = {
+        'text':text, 
+        'rate':0.1,
+    }
+    res = requests.post(endpoint, headers=headers, data=payload)
+    print(res)
+    result = res.json()['result']
+    
+    summary = ''.join(result)
+    summary = summary.replace('<nl>', '')
+    summary = summary.replace(' ', '')
+    return summary
+
+
+def gen_manuscript(author_name, tweet_text):
     st.text(tweet_text)
+    author_name = convert_text_into_speechable(author_name)
     text = convert_text_into_speechable(tweet_text)
 
     links = extract_url_from_(tweet_text)
@@ -70,8 +103,9 @@ def gen_manuscript(tweet_text):
             st.text(content)
             text += '。リンク内容。'
             text += convert_text_into_speechable(title)
-            text += convert_text_into_speechable(content)
+            text += summarize_text(convert_text_into_speechable(content))
         else:
             text = text.replace('リンク', '', 1)
 
-    return text
+    return author_name + "さんのツイートです。" + text
+

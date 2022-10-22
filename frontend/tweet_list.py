@@ -43,7 +43,7 @@ class Worker1(threading.Thread):
     def run(self):
         for text, tweet_id, author_name in self.text_list:
             payload = {
-                "text":author_name + "さんのツイートです。" + gen_manuscript(text),
+                "text":gen_manuscript(author_name, text),
             }
             res = requests.get(
                 f'http://api_server:8080/audio/{self.username}/{self.twitter_id}/{tweet_id}', 
@@ -59,9 +59,12 @@ class Worker1(threading.Thread):
 def tweet_list():
     worker1 = None
 
-    col1, col2, _ = st.columns([1,1,10])
+    col1, col2, _, col3 = st.columns([1,1,9,1])
     play = col1.button("play")
     stop = col2.button("stop")
+    col3 = st.container()
+
+
 
     username = st.session_state.username
     twitter_id = st.session_state.twitter_id
@@ -75,6 +78,9 @@ def tweet_list():
 
     res = requests.get(f'http://api_server:8080/tweets/{username}/{twitter_id}')
     tweets = st.session_state.tweets = json.loads(res.json()["data"])
+
+    annotated_flag = sum([not tweet["annotated"] for tweet in tweets])
+    col3.write("ラベリング完了" if annotated_flag==0 else "モデル学習中...")
 
     if topics is not None:
         tweets = st.session_state.tweets = [tweet for tweet in tweets if tweet['topic'] in topics]
