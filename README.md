@@ -1,22 +1,22 @@
 # DigLike
 
-[![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2022/08/JPHACKS2022_ogp.jpg)](https://www.youtube.com/watch?v=LUPQFB4QyVo)
+[![IMAGE ALT TEXT HERE](image/JPHACKS2022.001.png)](image/JPHACKS2022.001.png)
 
 ## 製品概要
 DigLikeはTwitterのいいねを自動で整理し
 空き時間に聞けるPodcastに変換するアプリです。
 
 ### 背景(製品開発のきっかけ、課題等）
-　* 後で、添付されていた論文を読もうとツイートに「いいね」をつけていたのに見つけられない。
-　* 面白そうな記事をTwitterで見つけたのに、結局見返さなかった。
+* 後で、添付されていた論文を読もうとツイートに「いいね」をつけていたのに見つけられない。
+* 面白そうな記事をTwitterで見つけたのに、結局見返さなかった。
 なんていう体験をしたことはありませんか？
 Twitterは情報収集ツールとして極めて優れているのにも関わらず、
 再検索性に乏しく、収集した情報を整理し、消化することが難しいという課題があります。
 
 ### 製品説明（具体的な製品の説明）
 DigLikeは、機械学習技術を用いて
-　* ツイートのを自動で分類
-　* Podcastの自動作成
+* ツイートのを自動で分類
+* Podcastの自動作成
 を行い、Twitterで収集した情報の管理、活用、消化をサポートします。
 
 ### 特長
