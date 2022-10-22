@@ -33,10 +33,11 @@ class Worker1(threading.Thread):
     Convert text to speech.
     Put audio_str and its meta-information into the queue.
     """
-    def __init__(self, deamon, text_list, twitter_id, **kwargs):
+    def __init__(self, deamon, text_list, username, twitter_id, **kwargs):
         super().__init__(**kwargs)
         self.queue = queue.Queue()
         self.text_list = text_list
+        self.username = username
         self.twitter_id = twitter_id
 
     def run(self):
@@ -45,7 +46,7 @@ class Worker1(threading.Thread):
                 "text":author_name + "さんのツイートです。" + gen_manuscript(text),
             }
             res = requests.get(
-                f'http://api_server:8080/audio/{self.twitter_id}/{tweet_id}', 
+                f'http://api_server:8080/audio/{self.username}/{self.twitter_id}/{tweet_id}', 
                 json=payload
             )
             result = res.json()
@@ -62,8 +63,9 @@ def tweet_list():
     play = col1.button("play")
     stop = col2.button("stop")
 
-    username = st.session_state.twitter_id
-    res = requests.get(f'http://api_server:8080/topics/{username}')
+    username = st.session_state.username
+    twitter_id = st.session_state.twitter_id
+    res = requests.get(f'http://api_server:8080/topics/{username}/{twitter_id}')
     chosen_topic = res.json()["data"]
 
     topics = st.multiselect(
@@ -71,7 +73,7 @@ def tweet_list():
             options=chosen_topic,
         ) or None
 
-    res = requests.get(f'http://api_server:8080/tweets/{username}')
+    res = requests.get(f'http://api_server:8080/tweets/{username}/{twitter_id}')
     tweets = st.session_state.tweets = json.loads(res.json()["data"])
 
     if topics is not None:
@@ -107,7 +109,7 @@ def tweet_list():
     if play and (topics is not None):
         text_list = [[tweet["text"], tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets]
 
-        worker1 = st.session_state.worker1 = Worker1(deamon=True, text_list=text_list, twitter_id=st.session_state.twitter_id)
+        worker1 = st.session_state.worker1 = Worker1(deamon=True, text_list=text_list, username=st.session_state.usrname, twitter_id=st.session_state.twitter_id)
         add_script_run_ctx(worker1)
         worker1.start()
 

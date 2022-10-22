@@ -45,7 +45,7 @@ def go_annotation():
         "topics": st.session_state.chosen_topic,
     }
     res = requests.post(
-        f"{API_ENDPOINT}/topics/{st.session_state.twitter_id}",
+        f"{API_ENDPOINT}/topics/{st.session_state.username}/{st.session_state.twitter_id}",
         json=payload,
     )
     st.session_state.page_name = "annotation"

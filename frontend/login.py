@@ -11,7 +11,7 @@ def login():
             st.text("")
         
         st.header("Enter Username")
-        st.session_state.username = st.text_input("", label_visibility="collapsed")
+        st.session_state.username = st.text_input("", label_visibility="collapsed", key=1)
 
         st.header("Enter Twitter ID")
 
@@ -19,7 +19,7 @@ def login():
     with col1:
         st.subheader("@")
     with col2:
-        st.session_state.twitter_id = st.text_input("", label_visibility="collapsed")
+        st.session_state.twitter_id = st.text_input("", label_visibility="collapsed", key=2)
     next_btn()
 
 
