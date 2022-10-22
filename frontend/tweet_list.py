@@ -109,7 +109,7 @@ def tweet_list():
     if play and (topics is not None):
         text_list = [[tweet["text"], tweet["id"], tweet["author_name"]] for tweet in st.session_state.tweets]
 
-        worker1 = st.session_state.worker1 = Worker1(deamon=True, text_list=text_list, username=st.session_state.usrname, twitter_id=st.session_state.twitter_id)
+        worker1 = st.session_state.worker1 = Worker1(deamon=True, text_list=text_list, username=st.session_state.username, twitter_id=st.session_state.twitter_id)
         add_script_run_ctx(worker1)
         worker1.start()
 
