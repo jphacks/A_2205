@@ -4,13 +4,14 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx
 import requests
 import json
 import os
-import numpy as np
 import base64
 import time
 import threading
 import queue
 from itertools import islice
 import math
+
+from utils import gen_manuscript
 
 
 @st.cache
@@ -41,7 +42,7 @@ class Worker1(threading.Thread):
     def run(self):
         for text, tweet_id, author_name in self.text_list:
             payload = {
-                "text":author_name + "さんのツイートです。" + text,
+                "text":author_name + "さんのツイートです。" + gen_manuscript(text),
             }
             res = requests.get(
                 f'http://api_server:8080/audio/{self.twitter_id}/{tweet_id}', 
